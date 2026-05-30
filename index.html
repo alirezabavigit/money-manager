@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Money Manager V15 Complete</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f6fa}
+header{background:#123b72;color:#fff;padding:15px}
+.card{background:#fff;border-radius:12px;padding:15px;margin:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tabs{display:flex;overflow:auto;background:#fff}
+.tab{padding:12px 16px;cursor:pointer}
+.active{background:#123b72;color:#fff}
+.page{display:none;padding:10px}
+.show{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+input,select{width:100%;padding:8px;margin:4px 0;box-sizing:border-box}
+button{background:#123b72;color:white;border:none;padding:8px 12px;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #ddd}
+#login{display:flex;height:100vh;justify-content:center;align-items:center}
+</style>
+</head>
+<body>
+
+<div id="login">
+<div class="card" style="width:320px">
+<h2>🔒 Money Manager</h2>
+<input type="password" id="pwd" placeholder="Password">
+<button onclick="loginApp()">Login</button>
+<div id="err" style="color:red"></div>
+</div>
+</div>
+
+<div id="app" style="display:none">
+<header>
+<h1>💰 Money Manager V15 Complete</h1>
+<div id="dt"></div>
+</header>
+
+<div class="tabs">
+<div class="tab active" onclick="openTab('dash',this)">Dashboard</div>
+<div class="tab" onclick="openTab('dd',this)">Direct Debits</div>
+<div class="tab" onclick="openTab('up',this)">Upcoming</div>
+<div class="tab" onclick="openTab('exp',this)">Expenses</div>
+<div class="tab" onclick="openTab('cards',this)">Credit Cards</div>
+</div>
+
+<div id="dash" class="page show">
+<div class="grid">
+<div class="card">🍔 Food<br><b id="food">£0.00</b></div>
+<div class="card">⛽ Fuel<br><b id="fuel">£0.00</b></div>
+<div class="card">🚆 Train<br><b id="train">£0.00</b></div>
+<div class="card">📦 Other<br><b id="other">£0.00</b></div>
+</div>
+<div class="card">
+<input id="bar" placeholder="Barclays Balance">
+<input id="nat" placeholder="NatWest Balance">
+<input id="sta" placeholder="Starling Balance">
+<button onclick="saveBalances()">Save Balances</button>
+</div>
+<div class="grid">
+<div class="card">Total Cash<br><h3 id="cash">£0.00</h3></div>
+<div class="card">Direct Debits<br><h3 id="ddtotal">£0.00</h3></div>
+<div class="card">Expenses<br><h3 id="exptotal">£0.00</h3></div>
+<div class="card">Credit Cards<br><h3>£532.80</h3></div>
+<div class="card">Safe Remaining<br><h3 id="safe">£0.00</h3></div>
+</div>
+</div>
+
+<div id="dd" class="page">
+<div class="card">
+<input id="ddname" placeholder="Name">
+<input id="ddamount" type="number" placeholder="Amount">
+<input id="ddday" type="number" placeholder="Day">
+<button onclick="addDD()">Add Direct Debit</button>
+</div>
+<div class="card"><table id="ddtable"></table></div>
+</div>
+
+<div id="up" class="page">
+<div class="card"><table id="uptable"></table></div>
+</div>
+
+<div id="exp" class="page">
+<div class="card">
+<select id="cat">
+<option>Food & Shopping</option><option>Fuel</option><option>Train Ticket</option><option>Other Expense</option>
+</select>
+<input id="desc" placeholder="Description">
+<input id="amt" type="number" placeholder="Amount">
+<button onclick="addExpense()">Add Expense</button>
+<div id="msg" style="color:red"></div>
+</div>
+<div class="card"><table id="exptable"></table></div>
+</div>
+
+<div id="cards" class="page">
+<div class="card">
+<table>
+<tr><th>Card</th><th>Owed</th><th>Pay Day</th></tr>
+<tr><td>Virgin Money</td><td>£160.64</td><td>3</td></tr>
+<tr><td>Capital One</td><td>£125.43</td><td>4</td></tr>
+<tr><td>Amex</td><td>£10.00</td><td>13</td></tr>
+<tr><td>Tesco Bank</td><td>£136.91</td><td>3</td></tr>
+<tr><td>Barclays Forward</td><td>£99.82</td><td>9</td></tr>
+</table>
+</div>
+</div>
+
+</div>
+
+<script>
+function loginApp(){
+ if(document.getElementById('pwd').value==='Ali2025!'){
+   document.getElementById('login').style.display='none';
+   document.getElementById('app').style.display='block';
+ } else document.getElementById('err').innerText='Incorrect password';
+}
+document.getElementById('dt').innerText=new Date().toLocaleString('en-GB');
+
+function openTab(id,e){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('show'));
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('show');
+ e.classList.add('active');
+}
+
+let dds=JSON.parse(localStorage.getItem('dds_complete')||'null')||[
+{name:'Life Insurance',amt:9.15,day:1},{name:'Barclays Loan',amt:498.51,day:1},
+{name:'British Gas Electric',amt:38.36,day:5},{name:'Aviva Home Insurance',amt:12.96,day:7},
+{name:'Anglian Water',amt:34,day:15},{name:'British Gas',amt:33.55,day:18},
+{name:'Hyundai Insurance',amt:41.92,day:19},{name:'Nissan Insurance',amt:41.90,day:19},
+{name:'Car Lease',amt:266.78,day:20},{name:'Rent',amt:660,day:20},
+{name:'O2',amt:29.49,day:24},{name:'Plusnet',amt:29.99,day:27},{name:'ChatGPT',amt:7.99,day:29}
+];
+let ex=JSON.parse(localStorage.getItem('exp_complete')||'[]');
+
+function renderDD(){
+ let h='<tr><th>Name</th><th>Amount</th><th>Day</th><th>Action</th></tr>',tot=0;
+ dds.forEach((d,i)=>{tot+=d.amt;h+=`<tr><td>${d.name}</td><td>£${d.amt.toFixed(2)}</td><td>${d.day}</td><td><button onclick="editDD(${i})">Edit</button> <button onclick="deleteDD(${i})">Remove</button></td></tr>`});
+ ddtable.innerHTML=h; ddtotal.innerText='£'+tot.toFixed(2); renderUpcoming(); calc();
+}
+function addDD(){
+ dds.push({name:ddname.value,amt:+ddamount.value,day:+ddday.value});
+ localStorage.setItem('dds_complete',JSON.stringify(dds)); renderDD();
+}
+function renderUpcoming(){
+ let t='<tr><th>Day</th><th>Name</th><th>Amount</th></tr>';
+ [...dds].sort((a,b)=>a.day-b.day).forEach(d=>t+=`<tr><td>${d.day}</td><td>${d.name}</td><td>£${d.amt.toFixed(2)}</td></tr>`);
+ uptable.innerHTML=t;
+}
+function addExpense(){
+ let a=parseFloat(amt.value);
+ if(isNaN(a)||a<1){msg.innerText='Amount must be at least £1';return;}
+ ex.push({cat:cat.value,desc:desc.value,amt:a});
+ localStorage.setItem('exp_complete',JSON.stringify(ex)); renderExp();
+}
+function renderExp(){
+ let t='<tr><th>Category</th><th>Description</th><th>Amount</th><th>Action</th></tr>';
+ let f=0,fu=0,tr=0,o=0,total=0;
+ ex.forEach((e,i)=>{
+ total+=e.amt;
+ if(e.cat==='Food & Shopping')f+=e.amt;
+ if(e.cat==='Fuel')fu+=e.amt;
+ if(e.cat==='Train Ticket')tr+=e.amt;
+ if(e.cat==='Other Expense')o+=e.amt;
+ t+=`<tr><td>${e.cat}</td><td>${e.desc}</td><td>£${e.amt.toFixed(2)}</td><td><button onclick="editExp(${i})">Edit</button> <button onclick="deleteExp(${i})">Remove</button></td></tr>`;
+ });
+ exptable.innerHTML=t;
+ food.innerText='£'+f.toFixed(2); fuel.innerText='£'+fu.toFixed(2);
+ train.innerText='£'+tr.toFixed(2); other.innerText='£'+o.toFixed(2);
+ exptotal.innerText='£'+total.toFixed(2); calc();
+}
+function saveBalances(){
+ localStorage.setItem('b',bar.value||0);
+ localStorage.setItem('n',nat.value||0);
+ localStorage.setItem('s',sta.value||0);
+ calc();
+}
+function calc(){
+ let cash=(+bar.value||0)+(+nat.value||0)+(+sta.value||0);
+ let dd=dds.reduce((a,b)=>a+b.amt,0);
+ let exp=ex.reduce((a,b)=>a+b.amt,0);
+ document.getElementById('cash').innerText='£'+cash.toFixed(2);
+ document.getElementById('safe').innerText='£'+(cash-dd-exp-532.80).toFixed(2);
+}
+
+function deleteDD(i){
+ dds.splice(i,1);
+ localStorage.setItem('dds_complete',JSON.stringify(dds));
+ renderDD();
+}
+function editDD(i){
+ let v=prompt('New amount',dds[i].amt);
+ if(v!==null){ dds[i].amt=parseFloat(v)||dds[i].amt; }
+ localStorage.setItem('dds_complete',JSON.stringify(dds));
+ renderDD();
+}
+function deleteExp(i){
+ ex.splice(i,1);
+ localStorage.setItem('exp_complete',JSON.stringify(ex));
+ renderExp();
+}
+function editExp(i){
+ let v=prompt('New amount',ex[i].amt);
+ if(v!==null){ ex[i].amt=parseFloat(v)||ex[i].amt; }
+ localStorage.setItem('exp_complete',JSON.stringify(ex));
+ renderExp();
+}
+
+window.onload=()=>{
+ bar.value=localStorage.getItem('b')||'';
+ nat.value=localStorage.getItem('n')||'';
+ sta.value=localStorage.getItem('s')||'';
+ renderDD(); renderExp(); calc();
+}
+</script>
+</body></html>
